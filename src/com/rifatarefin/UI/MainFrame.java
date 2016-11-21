@@ -134,7 +134,7 @@ public class MainFrame {
                                     double durationInSec = (duration*1.0)/1000;
                                     populateResultArea(labels, predicted, durationInSec);
                                 } catch (RefinedForestNotFoundException e1) {
-                                    JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Dialog",
+                                    JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                     e1.printStackTrace();
                                 }
@@ -164,7 +164,7 @@ public class MainFrame {
                                                 double durationInSec = (duration*1.0)/1000;
                                                 populateResultArea(testLabels, predicted, durationInSec);
                                             } catch (RefinedForestNotFoundException e1) {
-                                                JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Dialog",
+                                                JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
                                                         JOptionPane.ERROR_MESSAGE);
                                                 e1.printStackTrace();
                                             }
@@ -172,7 +172,7 @@ public class MainFrame {
                                             try {
                                                 predicted = new Evaluator().evaluateWithModel(testFeatures, preTrainedModel, forestName);
                                             } catch (RefinedForestNotFoundException e1) {
-                                                JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Dialog",
+                                                JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
                                                         JOptionPane.ERROR_MESSAGE);
                                                 e1.printStackTrace();
                                             }
@@ -194,39 +194,39 @@ public class MainFrame {
                                                 }
                                                 fw.close();
                                             }catch (IOException ioe){
-                                                JOptionPane.showMessageDialog(new JFrame(), "OutputFile not find..result was not saved!!", "Dialog",
+                                                JOptionPane.showMessageDialog(new JFrame(), "OutputFile not find..result was not saved!!", "Error",
                                                         JOptionPane.ERROR_MESSAGE);
                                             }
                                         }
                                     } catch (NumberFormatException e1) {
                                         e1.printStackTrace();
-                                        JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Dialog",
+                                        JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Error",
                                                 JOptionPane.ERROR_MESSAGE);
                                     } catch (IOException e1) {
                                         e1.printStackTrace();
-                                        JOptionPane.showMessageDialog(new JFrame(), "Data file not found!!!", "Dialog",
+                                        JOptionPane.showMessageDialog(new JFrame(), "Data file not found!!!", "Error",
                                                 JOptionPane.ERROR_MESSAGE);
                                     } catch (DataFormatException e1) {
                                         e1.printStackTrace();
-                                        JOptionPane.showMessageDialog(new JFrame(), "Data format or selected separator might not correct or not the correct file!!!", "Dialog",
+                                        JOptionPane.showMessageDialog(new JFrame(), "Data format or selected separator might not correct or not the correct file!!!", "Error",
                                                 JOptionPane.ERROR_MESSAGE);
                                     }
                                 }else {
-                                    JOptionPane.showMessageDialog(new JFrame(), "Please provide test data file", "Dialog",
+                                    JOptionPane.showMessageDialog(new JFrame(), "Please provide test data file", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                 }
                             }
                         } catch (IOException e1) {
                             e1.printStackTrace();
-                            JOptionPane.showMessageDialog(new JFrame(), "Pre-trained model file not found!!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), "Pre-trained model file not found!!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                         } catch (ClassNotFoundException e1) {
                             e1.printStackTrace();
-                            JOptionPane.showMessageDialog(new JFrame(), "Unable to load pre-trained model..model might be corrupted!!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), "Unable to load pre-trained model..model might be corrupted!!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                         }
                     }else{
-                        JOptionPane.showMessageDialog(new JFrame(), "Please provide pre-trained model path!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Please provide pre-trained model path!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }
                 }else {
@@ -269,12 +269,12 @@ public class MainFrame {
                         try {
                             minLeafSize = Integer.parseInt(minLeafSizeTextField.getText());
                             if(minLeafSize <= 0){
-                                JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be greater than zero!!!!", "Dialog",
+                                JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be greater than zero!!!!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
                                 shouldClassify = false;
                             }
                         } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be integer!!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be integer!!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                             shouldClassify = false;
                         }
@@ -283,7 +283,7 @@ public class MainFrame {
                         try {
                             minInfoGain = Double.parseDouble(minInfoGainTextField.getText());
                         } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Minimum info gain size should be numeric!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), "Minimum info gain size should be numeric!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                             shouldClassify = false;
                         }
@@ -292,12 +292,12 @@ public class MainFrame {
                         try {
                             noOfTrees = Integer.parseInt(noOfTreesTextField.getText());
                             if(noOfTrees <= 0){
-                                JOptionPane.showMessageDialog(new JFrame(), "No of trees should be greater than zero!!!!", "Dialog",
+                                JOptionPane.showMessageDialog(new JFrame(), "No of trees should be greater than zero!!!!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
                                 shouldClassify = false;
                             }
                         } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), " No of trees should be integer!!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), " No of trees should be integer!!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                             shouldClassify = false;
                         }
@@ -306,16 +306,16 @@ public class MainFrame {
                         try {
                             noOfRandomFeatures = Integer.parseInt(noOfRandomFeaturesTextField.getText());
                             if(noOfRandomFeatures > features.length){
-                                JOptionPane.showMessageDialog(new JFrame(), "Random selected features should be less than total no of features: " + features.length + "!!!!", "Dialog",
+                                JOptionPane.showMessageDialog(new JFrame(), "Random selected features should be less than total no of features: " + features.length + "!!!!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
                                 shouldClassify = false;
                             }else if(noOfRandomFeatures <= 0){
-                                JOptionPane.showMessageDialog(new JFrame(), "No of random feature should be greater than zero!!!!", "Dialog",
+                                JOptionPane.showMessageDialog(new JFrame(), "No of random feature should be greater than zero!!!!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
                                 shouldClassify = false;
                             }
                         } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "No of random features should be integer!!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), "No of random features should be integer!!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                             shouldClassify = false;
                         }
@@ -325,7 +325,7 @@ public class MainFrame {
                         try {
                             maxDepth = Integer.parseInt(maxDepthTextField.getText());
                         } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Max depth should be integer!!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), "Max depth should be integer!!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                             shouldClassify = false;
                         }
@@ -339,7 +339,7 @@ public class MainFrame {
                     if (maxDepth > 0) {
                         forestSettings.setMaxTreeDepth(maxDepth);
                     } else if (maxDepth <= 0) {
-                        JOptionPane.showMessageDialog(new JFrame(), "Tree depth must be greater than zero!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Tree depth must be greater than zero!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                         shouldClassify = false;
                     }
@@ -350,7 +350,7 @@ public class MainFrame {
                                 try {
                                     noOfFolds = Integer.parseInt(noOfFoldsTextField.getText());
                                 } catch (Exception ex) {
-                                    JOptionPane.showMessageDialog(new JFrame(), "Number of folds should be integer!!!!", "Dialog",
+                                    JOptionPane.showMessageDialog(new JFrame(), "Number of folds should be integer!!!!", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                 }
                             }
@@ -370,7 +370,7 @@ public class MainFrame {
                                 double durationInSec = (duration*1.0)/1000;
                                 populateResultArea(labels, predicted, durationInSec);
                             }else {
-                                JOptionPane.showMessageDialog(new JFrame(), "Number of folds must be greater than 2!!!!", "Dialog",
+                                JOptionPane.showMessageDialog(new JFrame(), "Number of folds must be greater than 2!!!!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
                             }
                         }else if (evaluationOptionNames.getSelectedItem().equals("Using Train Set")) {
@@ -428,7 +428,7 @@ public class MainFrame {
                                             }
                                             fw.close();
                                         }catch (IOException ioe){
-                                            JOptionPane.showMessageDialog(new JFrame(), "OutputFile not find..result was not saved!!", "Dialog",
+                                            JOptionPane.showMessageDialog(new JFrame(), "OutputFile not find..result was not saved!!", "Error",
                                                     JOptionPane.ERROR_MESSAGE);
                                         }
                                     }
@@ -436,19 +436,19 @@ public class MainFrame {
 
                                 } catch (NumberFormatException e1) {
                                     e1.printStackTrace();
-                                    JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Dialog",
+                                    JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                 } catch (IOException e1) {
                                     e1.printStackTrace();
-                                    JOptionPane.showMessageDialog(new JFrame(), "Data file not found!!!", "Dialog",
+                                    JOptionPane.showMessageDialog(new JFrame(), "Data file not found!!!", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                 } catch (DataFormatException e1) {
                                     e1.printStackTrace();
-                                    JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct or not the correct file!!!", "Dialog",
+                                    JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct or not the correct file!!!", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                 }
                             }else {
-                                JOptionPane.showMessageDialog(new JFrame(), "Please test data file", "Dialog",
+                                JOptionPane.showMessageDialog(new JFrame(), "Please test data file", "Error",
                                         JOptionPane.ERROR_MESSAGE);
                             }
                         }else if (evaluationOptionNames.getSelectedItem().equals("Holdout Set")) {
@@ -458,20 +458,20 @@ public class MainFrame {
                                 try {
                                     trainSetPercentage = Double.parseDouble(trainSetPercentageTextField.getText());
                                     if(trainSetPercentage == 100.0){
-                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should should less than 100", "Dialog",
+                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should should less than 100", "Error",
                                                 JOptionPane.ERROR_MESSAGE);
                                         shouldHoldoutValidate = false;
                                     }else if(trainSetPercentage == 0){
-                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should should be greater than 0", "Dialog",
+                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should should be greater than 0", "Error",
                                                 JOptionPane.ERROR_MESSAGE);
                                         shouldHoldoutValidate = false;
                                     }else if(trainSetPercentage < 0 || trainSetPercentage > 100 ){
-                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should between 0 to 100", "Dialog",
+                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should between 0 to 100", "Error",
                                                 JOptionPane.ERROR_MESSAGE);
                                         shouldHoldoutValidate = false;
                                     }
                                 } catch (Exception ex) {
-                                    JOptionPane.showMessageDialog(new JFrame(), "Set percentage is not valid!!!!", "Dialog",
+                                    JOptionPane.showMessageDialog(new JFrame(), "Set percentage is not valid!!!!", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                     shouldHoldoutValidate = false;
                                 }
@@ -481,7 +481,7 @@ public class MainFrame {
                                 int noOfInstances = labels.size();
                                 int noOfTrainInstances = (int)((trainSetPercentage/100)*noOfInstances);
                                 if(noOfTrainInstances >= noOfInstances){
-                                    JOptionPane.showMessageDialog(new JFrame(), "No test data available", "Dialog",
+                                    JOptionPane.showMessageDialog(new JFrame(), "No test data available", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                 }else {
                                     long start = System.currentTimeMillis();
@@ -664,19 +664,19 @@ public class MainFrame {
                         populateFeatureList();
                     } catch (NumberFormatException e1) {
                         e1.printStackTrace();
-                        JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     } catch (IOException e1) {
                         e1.printStackTrace();
-                        JOptionPane.showMessageDialog(new JFrame(), "Data file not found!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Data file not found!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     } catch (DataFormatException e1) {
                         e1.printStackTrace();
-                        JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct or not the correct file!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct or not the correct file!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }
                 }else {
-                    JOptionPane.showMessageDialog(new JFrame(), "Please select file!!!", "Dialog",
+                    JOptionPane.showMessageDialog(new JFrame(), "Please select file!!!", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -772,13 +772,18 @@ public class MainFrame {
         featureRemoveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int noOfItems = featureNames.size();
-                int selectedIndex = featureList.getSelectedIndex();
-                if(selectedIndex >= 0 && selectedIndex != noOfItems-1){
-                    featureNames.remove(selectedIndex);
-                    features = Utility.removeFeature(features, selectedIndex);
-                    attributeNames.remove(selectedIndex);
-            }
+                if(featureNames != null && featureNames.size() > 0){
+                    int noOfItems = featureNames.size();
+                    int selectedIndex = featureList.getSelectedIndex();
+                    if(selectedIndex >= 0 && selectedIndex != noOfItems-1){
+                        featureNames.remove(selectedIndex);
+                        features = Utility.removeFeature(features, selectedIndex);
+                        attributeNames.remove(selectedIndex);
+                    }
+                }else {
+                    JOptionPane.showMessageDialog(new JFrame(), "No features to remove...Please load data!!!!", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
@@ -832,10 +837,10 @@ public class MainFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(inputFileSelectionFileChooser.getSelectedFile() == null){
-                    JOptionPane.showMessageDialog(new JFrame(), "Please select input file!!!!", "Dialog",
+                    JOptionPane.showMessageDialog(new JFrame(), "Please select input file!!!!", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }else if(saveFileChooser.getSelectedFile() == null){
-                    JOptionPane.showMessageDialog(new JFrame(), "Please select output file!!!!", "Dialog",
+                    JOptionPane.showMessageDialog(new JFrame(), "Please select output file!!!!", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }else {
 
@@ -858,15 +863,15 @@ public class MainFrame {
                     try {
                         new Encoder().encode(inputFile, outputFile, labelIndex, separator, hasHeader, stringIndices, encodingType, fileType);
                     } catch (OutputFileNotFoundException e1) {
-                        JOptionPane.showMessageDialog(new JFrame(), "Output file not found!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Output file not found!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                         e1.printStackTrace();
                     } catch (InputFileNotFoundException e1) {
-                        JOptionPane.showMessageDialog(new JFrame(), "Output file not found!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Output file not found!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                         e1.printStackTrace();
                     } catch (StringParseException e1) {
-                        JOptionPane.showMessageDialog(new JFrame(), "Please enter valid integer as index separated by comma!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Please enter valid integer as index separated by comma!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                         e1.printStackTrace();
                     }
@@ -936,22 +941,22 @@ public class MainFrame {
                     filterSuccessful = true;
                 }else{
                     if(features == null){
-                        JOptionPane.showMessageDialog(new JFrame(), "Please load data!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Please load data!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }else if(features.length < 2){
-                        JOptionPane.showMessageDialog(new JFrame(), "Not enough features for selection!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Not enough features for selection!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }else if(features[0].size() != labels.size() || labels.size() == 0){
-                        JOptionPane.showMessageDialog(new JFrame(), "Data is not available for feature selection", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Data is not available for feature selection", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }else if(noOfFeatureTextField.getText().trim().equals("")){
-                        JOptionPane.showMessageDialog(new JFrame(), "Please enter no of features to select...", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Please enter no of features to select...", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }else {
                         try{
                             int noOfFeaturesToSelect = Integer.parseInt(noOfFeatureTextField.getText().trim());
                             if(noOfFeaturesToSelect > features.length){
-                                JOptionPane.showMessageDialog(new JFrame(), "No of selected features is greater than original feature!!!", "Dialog",
+                                JOptionPane.showMessageDialog(new JFrame(), "No of selected features is greater than original feature!!!", "Error",
                                         JOptionPane.ERROR_MESSAGE);
                             }else {
                                 if(filterType.equals("MRMR Selection")){
@@ -970,7 +975,7 @@ public class MainFrame {
                                 }
                             }
                         }catch (Exception ex){
-                            JOptionPane.showMessageDialog(new JFrame(), "Given no of feature is not a valid integer!!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), "Given no of feature is not a valid integer!!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                         }
                     }
@@ -985,11 +990,11 @@ public class MainFrame {
                                 hasHeader, separator, labelIndex, originalClassValues);
                     } catch (IOException e1) {
                         e1.printStackTrace();
-                        JOptionPane.showMessageDialog(new JFrame(), "Unable to find the file!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Unable to find the file!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     } catch (DataFormatException e1) {
                         e1.printStackTrace();
-                        JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct!!!!", "Dialog",
+                        JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct!!!!", "Error",
                                 JOptionPane.ERROR_MESSAGE);
                     }
                 }
@@ -1229,7 +1234,6 @@ public class MainFrame {
 
         evaluationOptions = new JComboBox(evaluationOptionNames);
         evaluationOptions.setSelectedIndex(0);
-        noOfFoldsTextField.setEnabled(false);
         trainSetPercentageTextField.setEnabled(false);
         testSetInputFileBrowseButton.setEnabled(false);
         hasLabelCheckBox.setEnabled(false);
@@ -1311,7 +1315,7 @@ public class MainFrame {
                         try {
                             ObjectSerializer.serialize(classifierModel, filePath);
                         } catch (IOException e1) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Unable to save classifier model!!!!", "Dialog",
+                            JOptionPane.showMessageDialog(new JFrame(), "Unable to save classifier model!!!!", "Error",
                                     JOptionPane.ERROR_MESSAGE);
                             e1.printStackTrace();
                         }
