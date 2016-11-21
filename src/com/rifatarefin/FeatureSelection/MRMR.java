@@ -37,13 +37,13 @@ public class MRMR {
         // Select rest of the features based on mrmr method
         while (selectedFeatures.size() < noOfFeaturesToSelect){
             Iterator<Integer> remainingIterator = remainingFeatures.iterator();
-            Iterator<Integer> selectedIterator = selectedFeatures.iterator();
 
             int newSelectedFeature = -1;
             double maxGain = -Double.MAX_VALUE;
             while (remainingIterator.hasNext()){
                 int remainingFeature = remainingIterator.next();
                 ArrayList<Double> miWithSelectedFeatures = new ArrayList<Double>();
+                Iterator<Integer> selectedIterator = selectedFeatures.iterator();
                 while (selectedIterator.hasNext()){
                     int selectedFeature = selectedIterator.next();
                     double mi = MutualInformation.calculateMutualInformation(featuresInArray.get(remainingFeature), featuresInArray.get(selectedFeature));
