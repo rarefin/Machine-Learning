@@ -118,26 +118,271 @@ public class MainFrame {
         evaluationButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(providePreTrainedModelCheckBox.isSelected()){
-                    if(preTrainedFileChooser.getSelectedFile() != null){
-                        try {
-                            ClassifierModel preTrainedModel = ObjectSerializer.deserialize(preTrainedFileChooser.getSelectedFile().getAbsolutePath());
-                            String forestName = forestNames.getSelectedItem().toString();
-                            ArrayList<Double> predicted = null;
-                            if (evaluationOptionNames.getSelectedItem().equals("Using Train Set")) {
+                if(features != null && features.length > 0){
+                    if(providePreTrainedModelCheckBox.isSelected()){
+                        if(preTrainedFileChooser.getSelectedFile() != null){
+                            try {
+                                ClassifierModel preTrainedModel = ObjectSerializer.deserialize(preTrainedFileChooser.getSelectedFile().getAbsolutePath());
+                                String forestName = forestNames.getSelectedItem().toString();
+                                ArrayList<Double> predicted = null;
+                                if (evaluationOptionNames.getSelectedItem().equals("Using Train Set")) {
 
-                                try {
+                                    try {
+                                        long start = System.currentTimeMillis();
+                                        predicted = new Evaluator().evaluateWithModel(features, preTrainedModel, forestName);
+                                        long end = System.currentTimeMillis();
+                                        long duration = (end-start);
+                                        double durationInSec = (duration*1.0)/1000;
+                                        populateResultArea(labels, predicted, durationInSec);
+                                    } catch (RefinedForestNotFoundException e1) {
+                                        JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
+                                                JOptionPane.ERROR_MESSAGE);
+                                        e1.printStackTrace();
+                                    }
+                                }else if (evaluationOptionNames.getSelectedItem().equals("Using Test Set")) {
+                                    if(testSetInputFileChooser.getSelectedFile() != null){
+                                        String testDataFilePath =  testSetInputFileChooser.getSelectedFile().getAbsolutePath();
+                                        String separator = (String) separatorOptions.getSelectedItem();
+                                        String labelIndex = (String) labelIndexOption.getSelectedItem();
+                                        boolean hasHeader = hasHeaderCheckBox.isSelected();
+                                        boolean hasId = hasIdCheckBox.isSelected();
+                                        boolean hasLabel = hasLabelCheckBox.isSelected();
+
+                                        CSVReader csvReader = new CSVReader();
+                                        try {
+                                            DataSet testSet = csvReader.loadTestData(testDataFilePath, separator, hasHeader,labelIndex, hasLabel,
+                                                    hasId, features.length, originalClassValues);
+                                            ArrayList<Double>[] testFeatures = testSet.getFeatures();
+                                            ArrayList<Double> testLabels = testSet.getLabels();
+                                            ArrayList<String> ids = testSet.getIds();
+
+                                            if(hasLabel && testLabels != null){
+                                                try {
+                                                    long start = System.currentTimeMillis();
+                                                    predicted = new Evaluator().evaluateWithModel(testFeatures, preTrainedModel, forestName);
+                                                    long end = System.currentTimeMillis();
+                                                    long duration = (end-start);
+                                                    double durationInSec = (duration*1.0)/1000;
+                                                    populateResultArea(testLabels, predicted, durationInSec);
+                                                } catch (RefinedForestNotFoundException e1) {
+                                                    JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
+                                                            JOptionPane.ERROR_MESSAGE);
+                                                    e1.printStackTrace();
+                                                }
+                                            }else {
+                                                try {
+                                                    predicted = new Evaluator().evaluateWithModel(testFeatures, preTrainedModel, forestName);
+                                                } catch (RefinedForestNotFoundException e1) {
+                                                    JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
+                                                            JOptionPane.ERROR_MESSAGE);
+                                                    e1.printStackTrace();
+                                                }
+                                            }
+                                            if(testSetResultFileChooser.getSelectedFile() != null){
+                                                FileWriter fw;
+                                                try{
+                                                    fw = new FileWriter(testSetResultFileChooser.getSelectedFile().getAbsolutePath());
+                                                    if(hasId && predicted != null && predicted.size() == ids.size()){
+                                                        for (int i = 0; i < predicted.size(); i++) {
+                                                            double p = predicted.get(i);
+                                                            fw.write(ids.get(i) + "," + originalClassValues.get((int)p) + "\n");
+                                                        }
+                                                    }else {
+                                                        for (int i = 0; i < predicted.size(); i++) {
+                                                            double p = predicted.get(i);
+                                                            fw.write(originalClassValues.get((int)p) + "\n");
+                                                        }
+                                                    }
+                                                    fw.close();
+                                                }catch (IOException ioe){
+                                                    JOptionPane.showMessageDialog(new JFrame(), "OutputFile not find..result was not saved!!", "Error",
+                                                            JOptionPane.ERROR_MESSAGE);
+                                                }
+                                            }
+                                        } catch (NumberFormatException e1) {
+                                            e1.printStackTrace();
+                                            JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Error",
+                                                    JOptionPane.ERROR_MESSAGE);
+                                        } catch (IOException e1) {
+                                            e1.printStackTrace();
+                                            JOptionPane.showMessageDialog(new JFrame(), "Data file not found!!!", "Error",
+                                                    JOptionPane.ERROR_MESSAGE);
+                                        } catch (DataFormatException e1) {
+                                            e1.printStackTrace();
+                                            JOptionPane.showMessageDialog(new JFrame(), "Data format or selected separator might not correct or not the correct file!!!", "Error",
+                                                    JOptionPane.ERROR_MESSAGE);
+                                        }
+                                    }else {
+                                        JOptionPane.showMessageDialog(new JFrame(), "Please provide test data file", "Error",
+                                                JOptionPane.ERROR_MESSAGE);
+                                    }
+                                }
+                            } catch (IOException e1) {
+                                e1.printStackTrace();
+                                JOptionPane.showMessageDialog(new JFrame(), "Pre-trained model file not found!!!!", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                            } catch (ClassNotFoundException e1) {
+                                e1.printStackTrace();
+                                JOptionPane.showMessageDialog(new JFrame(), "Unable to load pre-trained model..model might be corrupted!!!!", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                            }
+                        }else{
+                            JOptionPane.showMessageDialog(new JFrame(), "Please provide pre-trained model path!!!!", "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                        }
+                    }else {
+                        boolean shouldClassify = true;
+                        String treeName = "RandomTree";
+                        if (forestNames.getSelectedItem().equals("Random Forest")) {
+                            forestName = "RandomForest";
+                            treeName = "RandomTree";
+                        } else if (forestNames.getSelectedItem().equals("Refined Forest")) {
+                            forestName = "RefinedForest";
+                            if(refinableForestsNames.getSelectedItem().toString().equals("Random Forest")){
+                                treeName = "RandomTree";
+                            }else if(refinableForestsNames.getSelectedItem().toString().equals("Extra Tree Forest")){
+                                treeName = "ExtraTree";
+                            }if(refinableForestsNames.getSelectedItem().toString().equals("Perfect Random Tree Ensemble")){
+                                treeName = "PerfectRandomTree";
+                            }
+
+                        } else if (forestNames.getSelectedItem().equals("Extra Tree Forest")) {
+                            forestName = "RandomForest";
+                            treeName = "ExtraTree";
+                        } else if (forestNames.getSelectedItem().equals("Perfect Random Tree Ensemble")) {
+                            forestName = "RandomForest";
+                            treeName = "PerfectRandomTree";
+                        } else if (forestNames.getSelectedItem().equals("Weighted Forest")) {
+                            forestName = "WeightedForest";
+                            treeName = "RandomTree";
+                        } else if (forestNames.getSelectedItem().equals("Improved Random Forest")) {
+                            forestName = "RandomForest";
+                            treeName = "RandomTree";
+                        }
+
+                        int minLeafSize = 5;
+                        double minInfoGain = 0;
+                        int noOfTrees = 50;
+                        int noOfRandomFeatures = (int) Math.round(Math.sqrt(features.length));
+                        int noOfFolds = 5;
+                        int maxDepth = 10;
+                        if (!minLeafSizeTextField.getText().trim().equals("")) {
+                            try {
+                                minLeafSize = Integer.parseInt(minLeafSizeTextField.getText());
+                                if(minLeafSize <= 0){
+                                    JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be greater than zero!!!!", "Error",
+                                            JOptionPane.ERROR_MESSAGE);
+                                    shouldClassify = false;
+                                }
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be integer!!!!", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }
+                        }
+                        if (!minInfoGainTextField.getText().trim().equals("")) {
+                            try {
+                                minInfoGain = Double.parseDouble(minInfoGainTextField.getText());
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(new JFrame(), "Minimum info gain size should be numeric!!!", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }
+                        }
+                        if (!noOfTreesTextField.getText().trim().equals("")) {
+                            try {
+                                noOfTrees = Integer.parseInt(noOfTreesTextField.getText());
+                                if(noOfTrees <= 0){
+                                    JOptionPane.showMessageDialog(new JFrame(), "No of trees should be greater than zero!!!!", "Error",
+                                            JOptionPane.ERROR_MESSAGE);
+                                    shouldClassify = false;
+                                }
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(new JFrame(), " No of trees should be integer!!!!", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }
+                        }
+                        if (!noOfRandomFeaturesTextField.getText().trim().equals("")) {
+                            try {
+                                noOfRandomFeatures = Integer.parseInt(noOfRandomFeaturesTextField.getText());
+                                if(noOfRandomFeatures > features.length){
+                                    JOptionPane.showMessageDialog(new JFrame(), "Random selected features should be less than total no of features: " + features.length + "!!!!", "Error",
+                                            JOptionPane.ERROR_MESSAGE);
+                                    shouldClassify = false;
+                                }else if(noOfRandomFeatures <= 0){
+                                    JOptionPane.showMessageDialog(new JFrame(), "No of random feature should be greater than zero!!!!", "Error",
+                                            JOptionPane.ERROR_MESSAGE);
+                                    shouldClassify = false;
+                                }
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(new JFrame(), "No of random features should be integer!!!!", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }
+                        }
+
+                        if (!maxDepthTextField.getText().trim().equals("")) {
+                            try {
+                                maxDepth = Integer.parseInt(maxDepthTextField.getText());
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(new JFrame(), "Max depth should be integer!!!!", "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }
+                        }
+
+                        ForestSettings forestSettings = new ForestSettings(noOfRandomFeatures, forestName, treeName);
+                        forestSettings.setNoOfTrees(noOfTrees);
+                        forestSettings.setMinLeafSize(minLeafSize);
+                        forestSettings.setUseBootstrapSample(true);
+                        forestSettings.setMinInfoGain(minInfoGain);
+                        if (maxDepth > 0) {
+                            forestSettings.setMaxTreeDepth(maxDepth);
+                        } else if (maxDepth <= 0) {
+                            JOptionPane.showMessageDialog(new JFrame(), "Tree depth must be greater than zero!!!!", "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                            shouldClassify = false;
+                        }
+                        ArrayList<Double> predicted;
+                        if (shouldClassify) {
+                            if (evaluationOptionNames.getSelectedItem().equals("Cross Validation")) {
+                                if (!noOfFoldsTextField.getText().trim().equals("")) {
+                                    try {
+                                        noOfFolds = Integer.parseInt(noOfFoldsTextField.getText());
+                                    } catch (Exception ex) {
+                                        JOptionPane.showMessageDialog(new JFrame(), "Number of folds should be integer!!!!", "Error",
+                                                JOptionPane.ERROR_MESSAGE);
+                                    }
+                                }
+                                if(noOfFolds > 2){
                                     long start = System.currentTimeMillis();
-                                    predicted = new Evaluator().evaluateWithModel(features, preTrainedModel, forestName);
+                                    if(forestNames.getSelectedItem().equals("Improved Random Forest")){
+                                        int k = Math.round(features.length * (3/6));
+                                        ArrayList<Integer> selectedFeatureIndices  = new GreedySelection().getSelectedFeatures("ReliefF",
+                                                features, labels, k);
+                                        ArrayList<Double>[] selectedTrainFeatures = Utility.getSelectedFeatures(features, selectedFeatureIndices);
+                                        predicted = new CrossValidator(noOfFolds).validate(selectedTrainFeatures, labels, forestSettings);
+                                    }else{
+                                        predicted = new CrossValidator(noOfFolds).validate(features, labels, forestSettings);
+                                    }
                                     long end = System.currentTimeMillis();
                                     long duration = (end-start);
                                     double durationInSec = (duration*1.0)/1000;
                                     populateResultArea(labels, predicted, durationInSec);
-                                } catch (RefinedForestNotFoundException e1) {
-                                    JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
+                                }else {
+                                    JOptionPane.showMessageDialog(new JFrame(), "Number of folds must be greater than 2!!!!", "Error",
                                             JOptionPane.ERROR_MESSAGE);
-                                    e1.printStackTrace();
                                 }
+                            }else if (evaluationOptionNames.getSelectedItem().equals("Using Train Set")) {
+                                long start = System.currentTimeMillis();
+                                classifierModel = new Evaluator().evaluateAndGetModel(features, labels, features, forestSettings);
+                                predicted = classifierModel.getPredictedLabels();
+                                long end = System.currentTimeMillis();
+                                long duration = (end-start);
+                                double durationInSec = (duration*1.0)/1000;
+                                populateResultArea(labels, predicted, durationInSec);
+                                saveClassifierButton.setEnabled(true);
                             }else if (evaluationOptionNames.getSelectedItem().equals("Using Test Set")) {
                                 if(testSetInputFileChooser.getSelectedFile() != null){
                                     String testDataFilePath =  testSetInputFileChooser.getSelectedFile().getAbsolutePath();
@@ -156,32 +401,22 @@ public class MainFrame {
                                         ArrayList<String> ids = testSet.getIds();
 
                                         if(hasLabel && testLabels != null){
-                                            try {
-                                                long start = System.currentTimeMillis();
-                                                predicted = new Evaluator().evaluateWithModel(testFeatures, preTrainedModel, forestName);
-                                                long end = System.currentTimeMillis();
-                                                long duration = (end-start);
-                                                double durationInSec = (duration*1.0)/1000;
-                                                populateResultArea(testLabels, predicted, durationInSec);
-                                            } catch (RefinedForestNotFoundException e1) {
-                                                JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
-                                                        JOptionPane.ERROR_MESSAGE);
-                                                e1.printStackTrace();
-                                            }
+                                            long start = System.currentTimeMillis();
+                                            classifierModel = new Evaluator().evaluateAndGetModel(features, labels, testFeatures, forestSettings);
+                                            predicted = classifierModel.getPredictedLabels();
+                                            long end = System.currentTimeMillis();
+                                            long duration = (end-start);
+                                            double durationInSec = (duration*1.0)/1000;
+                                            populateResultArea(testLabels, predicted, durationInSec);
                                         }else {
-                                            try {
-                                                predicted = new Evaluator().evaluateWithModel(testFeatures, preTrainedModel, forestName);
-                                            } catch (RefinedForestNotFoundException e1) {
-                                                JOptionPane.showMessageDialog(new JFrame(), "You haven't select correct forest!!!", "Error",
-                                                        JOptionPane.ERROR_MESSAGE);
-                                                e1.printStackTrace();
-                                            }
+                                            classifierModel = new Evaluator().evaluateAndGetModel(features, labels, testFeatures, forestSettings);
+                                            predicted = classifierModel.getPredictedLabels();
                                         }
                                         if(testSetResultFileChooser.getSelectedFile() != null){
                                             FileWriter fw;
                                             try{
                                                 fw = new FileWriter(testSetResultFileChooser.getSelectedFile().getAbsolutePath());
-                                                if(hasId && predicted != null && predicted.size() == ids.size()){
+                                                if(hasId && predicted.size() == ids.size()){
                                                     for (int i = 0; i < predicted.size(); i++) {
                                                         double p = predicted.get(i);
                                                         fw.write(ids.get(i) + "," + originalClassValues.get((int)p) + "\n");
@@ -198,6 +433,8 @@ public class MainFrame {
                                                         JOptionPane.ERROR_MESSAGE);
                                             }
                                         }
+                                        saveClassifierButton.setEnabled(true);
+
                                     } catch (NumberFormatException e1) {
                                         e1.printStackTrace();
                                         JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Error",
@@ -208,293 +445,61 @@ public class MainFrame {
                                                 JOptionPane.ERROR_MESSAGE);
                                     } catch (DataFormatException e1) {
                                         e1.printStackTrace();
-                                        JOptionPane.showMessageDialog(new JFrame(), "Data format or selected separator might not correct or not the correct file!!!", "Error",
+                                        JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct or not the correct file!!!", "Error",
                                                 JOptionPane.ERROR_MESSAGE);
                                     }
                                 }else {
-                                    JOptionPane.showMessageDialog(new JFrame(), "Please provide test data file", "Error",
+                                    JOptionPane.showMessageDialog(new JFrame(), "Please test data file", "Error",
                                             JOptionPane.ERROR_MESSAGE);
                                 }
-                            }
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                            JOptionPane.showMessageDialog(new JFrame(), "Pre-trained model file not found!!!!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                        } catch (ClassNotFoundException e1) {
-                            e1.printStackTrace();
-                            JOptionPane.showMessageDialog(new JFrame(), "Unable to load pre-trained model..model might be corrupted!!!!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                        }
-                    }else{
-                        JOptionPane.showMessageDialog(new JFrame(), "Please provide pre-trained model path!!!!", "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                }else {
-                    boolean shouldClassify = true;
-                    String treeName = "RandomTree";
-                    if (forestNames.getSelectedItem().equals("Random Forest")) {
-                        forestName = "RandomForest";
-                        treeName = "RandomTree";
-                    } else if (forestNames.getSelectedItem().equals("Refined Forest")) {
-                        forestName = "RefinedForest";
-                        if(refinableForestsNames.getSelectedItem().toString().equals("Random Forest")){
-                            treeName = "RandomTree";
-                        }else if(refinableForestsNames.getSelectedItem().toString().equals("Extra Tree Forest")){
-                            treeName = "ExtraTree";
-                        }if(refinableForestsNames.getSelectedItem().toString().equals("Perfect Random Tree Ensemble")){
-                            treeName = "PerfectRandomTree";
-                        }
-
-                    } else if (forestNames.getSelectedItem().equals("Extra Tree Forest")) {
-                        forestName = "RandomForest";
-                        treeName = "ExtraTree";
-                    } else if (forestNames.getSelectedItem().equals("Perfect Random Tree Ensemble")) {
-                        forestName = "RandomForest";
-                        treeName = "PerfectRandomTree";
-                    } else if (forestNames.getSelectedItem().equals("Weighted Forest")) {
-                        forestName = "WeightedForest";
-                        treeName = "RandomTree";
-                    } else if (forestNames.getSelectedItem().equals("Improved Random Forest")) {
-                        forestName = "RandomForest";
-                        treeName = "RandomTree";
-                    }
-
-                    int minLeafSize = 5;
-                    double minInfoGain = 0;
-                    int noOfTrees = 50;
-                    int noOfRandomFeatures = (int) Math.round(Math.sqrt(features.length));
-                    int noOfFolds = 5;
-                    int maxDepth = 10;
-                    if (!minLeafSizeTextField.getText().trim().equals("")) {
-                        try {
-                            minLeafSize = Integer.parseInt(minLeafSizeTextField.getText());
-                            if(minLeafSize <= 0){
-                                JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be greater than zero!!!!", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                                shouldClassify = false;
-                            }
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be integer!!!!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                            shouldClassify = false;
-                        }
-                    }
-                    if (!minInfoGainTextField.getText().trim().equals("")) {
-                        try {
-                            minInfoGain = Double.parseDouble(minInfoGainTextField.getText());
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Minimum info gain size should be numeric!!!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                            shouldClassify = false;
-                        }
-                    }
-                    if (!noOfTreesTextField.getText().trim().equals("")) {
-                        try {
-                            noOfTrees = Integer.parseInt(noOfTreesTextField.getText());
-                            if(noOfTrees <= 0){
-                                JOptionPane.showMessageDialog(new JFrame(), "No of trees should be greater than zero!!!!", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                                shouldClassify = false;
-                            }
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), " No of trees should be integer!!!!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                            shouldClassify = false;
-                        }
-                    }
-                    if (!noOfRandomFeaturesTextField.getText().trim().equals("")) {
-                        try {
-                            noOfRandomFeatures = Integer.parseInt(noOfRandomFeaturesTextField.getText());
-                            if(noOfRandomFeatures > features.length){
-                                JOptionPane.showMessageDialog(new JFrame(), "Random selected features should be less than total no of features: " + features.length + "!!!!", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                                shouldClassify = false;
-                            }else if(noOfRandomFeatures <= 0){
-                                JOptionPane.showMessageDialog(new JFrame(), "No of random feature should be greater than zero!!!!", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                                shouldClassify = false;
-                            }
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "No of random features should be integer!!!!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                            shouldClassify = false;
-                        }
-                    }
-
-                    if (!maxDepthTextField.getText().trim().equals("")) {
-                        try {
-                            maxDepth = Integer.parseInt(maxDepthTextField.getText());
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(new JFrame(), "Max depth should be integer!!!!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                            shouldClassify = false;
-                        }
-                    }
-
-                    ForestSettings forestSettings = new ForestSettings(noOfRandomFeatures, forestName, treeName);
-                    forestSettings.setNoOfTrees(noOfTrees);
-                    forestSettings.setMinLeafSize(minLeafSize);
-                    forestSettings.setUseBootstrapSample(true);
-                    forestSettings.setMinInfoGain(minInfoGain);
-                    if (maxDepth > 0) {
-                        forestSettings.setMaxTreeDepth(maxDepth);
-                    } else if (maxDepth <= 0) {
-                        JOptionPane.showMessageDialog(new JFrame(), "Tree depth must be greater than zero!!!!", "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                        shouldClassify = false;
-                    }
-                    ArrayList<Double> predicted;
-                    if (shouldClassify) {
-                        if (evaluationOptionNames.getSelectedItem().equals("Cross Validation")) {
-                            if (!noOfFoldsTextField.getText().trim().equals("")) {
-                                try {
-                                    noOfFolds = Integer.parseInt(noOfFoldsTextField.getText());
-                                } catch (Exception ex) {
-                                    JOptionPane.showMessageDialog(new JFrame(), "Number of folds should be integer!!!!", "Error",
-                                            JOptionPane.ERROR_MESSAGE);
+                            }else if (evaluationOptionNames.getSelectedItem().equals("Holdout Set")) {
+                                double trainSetPercentage = 66.33;
+                                boolean shouldHoldoutValidate = true;
+                                if(!trainSetPercentageTextField.getText().equals("")){
+                                    try {
+                                        trainSetPercentage = Double.parseDouble(trainSetPercentageTextField.getText());
+                                        if(trainSetPercentage == 100.0){
+                                            JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should should less than 100", "Error",
+                                                    JOptionPane.ERROR_MESSAGE);
+                                            shouldHoldoutValidate = false;
+                                        }else if(trainSetPercentage == 0){
+                                            JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should should be greater than 0", "Error",
+                                                    JOptionPane.ERROR_MESSAGE);
+                                            shouldHoldoutValidate = false;
+                                        }else if(trainSetPercentage < 0 || trainSetPercentage > 100 ){
+                                            JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should between 0 to 100", "Error",
+                                                    JOptionPane.ERROR_MESSAGE);
+                                            shouldHoldoutValidate = false;
+                                        }
+                                    } catch (Exception ex) {
+                                        JOptionPane.showMessageDialog(new JFrame(), "Set percentage is not valid!!!!", "Error",
+                                                JOptionPane.ERROR_MESSAGE);
+                                        shouldHoldoutValidate = false;
+                                    }
                                 }
-                            }
-                            if(noOfFolds > 2){
-                                long start = System.currentTimeMillis();
-                                if(forestNames.getSelectedItem().equals("Improved Random Forest")){
-                                    int k = Math.round(features.length * (3/6));
-                                    ArrayList<Integer> selectedFeatureIndices  = new GreedySelection().getSelectedFeatures("ReliefF",
-                                            features, labels, k);
-                                    ArrayList<Double>[] selectedTrainFeatures = Utility.getSelectedFeatures(features, selectedFeatureIndices);
-                                    predicted = new CrossValidator(noOfFolds).validate(selectedTrainFeatures, labels, forestSettings);
-                                }else{
-                                    predicted = new CrossValidator(noOfFolds).validate(features, labels, forestSettings);
-                                }
-                                long end = System.currentTimeMillis();
-                                long duration = (end-start);
-                                double durationInSec = (duration*1.0)/1000;
-                                populateResultArea(labels, predicted, durationInSec);
-                            }else {
-                                JOptionPane.showMessageDialog(new JFrame(), "Number of folds must be greater than 2!!!!", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                            }
-                        }else if (evaluationOptionNames.getSelectedItem().equals("Using Train Set")) {
-                            long start = System.currentTimeMillis();
-                            classifierModel = new Evaluator().evaluateAndGetModel(features, labels, features, forestSettings);
-                            predicted = classifierModel.getPredictedLabels();
-                            long end = System.currentTimeMillis();
-                            long duration = (end-start);
-                            double durationInSec = (duration*1.0)/1000;
-                            populateResultArea(labels, predicted, durationInSec);
-                            saveClassifierButton.setEnabled(true);
-                        }else if (evaluationOptionNames.getSelectedItem().equals("Using Test Set")) {
-                            if(testSetInputFileChooser.getSelectedFile() != null){
-                                String testDataFilePath =  testSetInputFileChooser.getSelectedFile().getAbsolutePath();
-                                String separator = (String) separatorOptions.getSelectedItem();
-                                String labelIndex = (String) labelIndexOption.getSelectedItem();
-                                boolean hasHeader = hasHeaderCheckBox.isSelected();
-                                boolean hasId = hasIdCheckBox.isSelected();
-                                boolean hasLabel = hasLabelCheckBox.isSelected();
 
-                                CSVReader csvReader = new CSVReader();
-                                try {
-                                    DataSet testSet = csvReader.loadTestData(testDataFilePath, separator, hasHeader,labelIndex, hasLabel,
-                                            hasId, features.length, originalClassValues);
-                                    ArrayList<Double>[] testFeatures = testSet.getFeatures();
-                                    ArrayList<Double> testLabels = testSet.getLabels();
-                                    ArrayList<String> ids = testSet.getIds();
-
-                                    if(hasLabel && testLabels != null){
+                                if(shouldHoldoutValidate){
+                                    int noOfInstances = labels.size();
+                                    int noOfTrainInstances = (int)((trainSetPercentage/100)*noOfInstances);
+                                    if(noOfTrainInstances >= noOfInstances){
+                                        JOptionPane.showMessageDialog(new JFrame(), "No test data available", "Error",
+                                                JOptionPane.ERROR_MESSAGE);
+                                    }else {
                                         long start = System.currentTimeMillis();
-                                        classifierModel = new Evaluator().evaluateAndGetModel(features, labels, testFeatures, forestSettings);
-                                        predicted = classifierModel.getPredictedLabels();
+                                        ArrayList<Double>[] results = new HoldoutValidator().validate(features, labels,
+                                                noOfTrainInstances, forestSettings);
                                         long end = System.currentTimeMillis();
                                         long duration = (end-start);
                                         double durationInSec = (duration*1.0)/1000;
-                                        populateResultArea(testLabels, predicted, durationInSec);
-                                    }else {
-                                        classifierModel = new Evaluator().evaluateAndGetModel(features, labels, testFeatures, forestSettings);
-                                        predicted = classifierModel.getPredictedLabels();
+                                        populateResultArea(results[0], results[1], durationInSec);
                                     }
-                                    if(testSetResultFileChooser.getSelectedFile() != null){
-                                        FileWriter fw;
-                                        try{
-                                            fw = new FileWriter(testSetResultFileChooser.getSelectedFile().getAbsolutePath());
-                                            if(hasId && predicted.size() == ids.size()){
-                                                for (int i = 0; i < predicted.size(); i++) {
-                                                    double p = predicted.get(i);
-                                                    fw.write(ids.get(i) + "," + originalClassValues.get((int)p) + "\n");
-                                                }
-                                            }else {
-                                                for (int i = 0; i < predicted.size(); i++) {
-                                                    double p = predicted.get(i);
-                                                    fw.write(originalClassValues.get((int)p) + "\n");
-                                                }
-                                            }
-                                            fw.close();
-                                        }catch (IOException ioe){
-                                            JOptionPane.showMessageDialog(new JFrame(), "OutputFile not find..result was not saved!!", "Error",
-                                                    JOptionPane.ERROR_MESSAGE);
-                                        }
-                                    }
-                                    saveClassifierButton.setEnabled(true);
-
-                                } catch (NumberFormatException e1) {
-                                    e1.printStackTrace();
-                                    JOptionPane.showMessageDialog(new JFrame(), "File may contain categorical string values...Please encode to numeric!!!", "Error",
-                                            JOptionPane.ERROR_MESSAGE);
-                                } catch (IOException e1) {
-                                    e1.printStackTrace();
-                                    JOptionPane.showMessageDialog(new JFrame(), "Data file not found!!!", "Error",
-                                            JOptionPane.ERROR_MESSAGE);
-                                } catch (DataFormatException e1) {
-                                    e1.printStackTrace();
-                                    JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct or not the correct file!!!", "Error",
-                                            JOptionPane.ERROR_MESSAGE);
-                                }
-                            }else {
-                                JOptionPane.showMessageDialog(new JFrame(), "Please test data file", "Error",
-                                        JOptionPane.ERROR_MESSAGE);
-                            }
-                        }else if (evaluationOptionNames.getSelectedItem().equals("Holdout Set")) {
-                            double trainSetPercentage = 66.33;
-                            boolean shouldHoldoutValidate = true;
-                            if(!trainSetPercentageTextField.getText().equals("")){
-                                try {
-                                    trainSetPercentage = Double.parseDouble(trainSetPercentageTextField.getText());
-                                    if(trainSetPercentage == 100.0){
-                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should should less than 100", "Error",
-                                                JOptionPane.ERROR_MESSAGE);
-                                        shouldHoldoutValidate = false;
-                                    }else if(trainSetPercentage == 0){
-                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should should be greater than 0", "Error",
-                                                JOptionPane.ERROR_MESSAGE);
-                                        shouldHoldoutValidate = false;
-                                    }else if(trainSetPercentage < 0 || trainSetPercentage > 100 ){
-                                        JOptionPane.showMessageDialog(new JFrame(), "Train set percentage should between 0 to 100", "Error",
-                                                JOptionPane.ERROR_MESSAGE);
-                                        shouldHoldoutValidate = false;
-                                    }
-                                } catch (Exception ex) {
-                                    JOptionPane.showMessageDialog(new JFrame(), "Set percentage is not valid!!!!", "Error",
-                                            JOptionPane.ERROR_MESSAGE);
-                                    shouldHoldoutValidate = false;
-                                }
-                            }
-
-                            if(shouldHoldoutValidate){
-                                int noOfInstances = labels.size();
-                                int noOfTrainInstances = (int)((trainSetPercentage/100)*noOfInstances);
-                                if(noOfTrainInstances >= noOfInstances){
-                                    JOptionPane.showMessageDialog(new JFrame(), "No test data available", "Error",
-                                            JOptionPane.ERROR_MESSAGE);
-                                }else {
-                                    long start = System.currentTimeMillis();
-                                    ArrayList<Double>[] results = new HoldoutValidator().validate(features, labels,
-                                            noOfTrainInstances, forestSettings);
-                                    long end = System.currentTimeMillis();
-                                    long duration = (end-start);
-                                    double durationInSec = (duration*1.0)/1000;
-                                    populateResultArea(results[0], results[1], durationInSec);
                                 }
                             }
                         }
                     }
+                }else {
+                    JOptionPane.showMessageDialog(new JFrame(), "Please load data!!!", "Error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
