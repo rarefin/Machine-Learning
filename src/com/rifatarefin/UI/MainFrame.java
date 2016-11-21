@@ -110,6 +110,7 @@ public class MainFrame {
 
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setVisible(true);
+        mainFrame.setResizable(false);
 
         startEvaluation();
     }
@@ -355,7 +356,7 @@ public class MainFrame {
                                                 JOptionPane.ERROR_MESSAGE);
                                     }
                                 }
-                                if(noOfFolds > 2){
+                                if(noOfFolds > 1){
                                     long start = System.currentTimeMillis();
                                     if(forestNames.getSelectedItem().equals("Improved Random Forest")){
                                         int k = Math.round(features.length * (3/6));
@@ -515,7 +516,16 @@ public class MainFrame {
         result = "\n\n  Accuracy :  " +accuracy + "\n\n";
         resultTextArea.append(result);
         HashSet<Double> hashSet = new HashSet<Double>();
+        for (int i = 0; i < labels.size(); i++) {
+            hashSet.add(labels.get(i));
+        }
+        classes = new ArrayList<Double>(hashSet);
+        Collections.sort(classes);
         HashMap<Double, Double> hashMap = new HashMap<Double, Double>();
+        for (int i = 0; i < classes.size(); i++) {
+            hashMap.put(classes.get(i), 0.0);
+        }
+
         for (int i = 0; i < actual.size(); i++) {
             hashSet.add(actual.get(i));
             if(hashMap.get(actual.get(i)) == null){
@@ -524,15 +534,14 @@ public class MainFrame {
                 hashMap.put(actual.get(i), hashMap.get(actual.get(i))+1.0);
             }
         }
+
         for (Map.Entry<Double, Double> entry :hashMap.entrySet())
         {
             double p = entry.getValue() / actual.size();
             hashMap.put(entry.getKey(), p);
         }
-        classes = new ArrayList<Double>(hashSet);
-        Collections.sort(classes);
 
-        int[][] confusionMatrix = EvaluationMeasure.getConfusionMatrix(actual, predicted);
+        int[][] confusionMatrix = EvaluationMeasure.getConfusionMatrix(actual, predicted, hashSet);
         double sumOfPrecisions = 0;
         double sumOfRecalls = 0;
         double sumOfFMeasures = 0;
@@ -550,7 +559,7 @@ public class MainFrame {
             sumOfPrecisions += precision * hashMap.get(classLabel);
             sumOfRecalls += recall * hashMap.get(classLabel);
             sumOfFMeasures += fMeasure * hashMap.get(classLabel);
-            result = "    " + (int)classLabel + "       |    " + formatter.format(precision) + "    |    " + formatter.format(recall)
+            result = "    " + originalClassValues.get((int)classLabel) + "       |    " + formatter.format(precision) + "    |    " + formatter.format(recall)
                     + "    |    " + formatter.format(fMeasure)+ "\n";
             resultTextArea.append(result);
             resultTextArea.append("  ---------------------------------------------------------------\n");
