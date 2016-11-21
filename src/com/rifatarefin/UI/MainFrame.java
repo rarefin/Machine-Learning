@@ -10,8 +10,8 @@ import com.rifatarefin.EvaluationMeasure;
 import com.rifatarefin.Exception.*;
 import com.rifatarefin.FeatureSelection.GreedySelection;
 import com.rifatarefin.FeatureSelection.MRMR;
-import com.rifatarefin.Serializatin.ClassifierModel;
-import com.rifatarefin.Serializatin.ObjectSerializer;
+import com.rifatarefin.Serialization.ClassifierModel;
+import com.rifatarefin.Serialization.ObjectSerializer;
 import com.rifatarefin.Utility;
 import com.rifatarefin.Data.DataSet;
 import com.rifatarefin.Datamanager.CSVReader;
@@ -209,7 +209,7 @@ public class MainFrame {
                                                 JOptionPane.ERROR_MESSAGE);
                                     } catch (DataFormatException e1) {
                                         e1.printStackTrace();
-                                        JOptionPane.showMessageDialog(new JFrame(), "Data format is not correct or not the correct file!!!", "Dialog",
+                                        JOptionPane.showMessageDialog(new JFrame(), "Data format or selected separator might not correct or not the correct file!!!", "Dialog",
                                                 JOptionPane.ERROR_MESSAGE);
                                     }
                                 }else {
