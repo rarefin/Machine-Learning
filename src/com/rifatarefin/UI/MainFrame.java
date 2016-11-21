@@ -118,7 +118,6 @@ public class MainFrame {
         evaluationButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                resultTextArea.setText("\n\n   Wait...Evaluation is going on !!!!!!!!");
                 if(providePreTrainedModelCheckBox.isSelected()){
                     if(preTrainedFileChooser.getSelectedFile() != null){
                         try {
@@ -269,6 +268,11 @@ public class MainFrame {
                     if (!minLeafSizeTextField.getText().trim().equals("")) {
                         try {
                             minLeafSize = Integer.parseInt(minLeafSizeTextField.getText());
+                            if(minLeafSize <= 0){
+                                JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be greater than zero!!!!", "Dialog",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(new JFrame(), "Minimum leaf size should be integer!!!!", "Dialog",
                                     JOptionPane.ERROR_MESSAGE);
@@ -287,6 +291,11 @@ public class MainFrame {
                     if (!noOfTreesTextField.getText().trim().equals("")) {
                         try {
                             noOfTrees = Integer.parseInt(noOfTreesTextField.getText());
+                            if(noOfTrees <= 0){
+                                JOptionPane.showMessageDialog(new JFrame(), "No of trees should be greater than zero!!!!", "Dialog",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(new JFrame(), " No of trees should be integer!!!!", "Dialog",
                                     JOptionPane.ERROR_MESSAGE);
@@ -296,6 +305,15 @@ public class MainFrame {
                     if (!noOfRandomFeaturesTextField.getText().trim().equals("")) {
                         try {
                             noOfRandomFeatures = Integer.parseInt(noOfRandomFeaturesTextField.getText());
+                            if(noOfRandomFeatures > features.length){
+                                JOptionPane.showMessageDialog(new JFrame(), "Random selected features should be less than total no of features: " + features.length + "!!!!", "Dialog",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }else if(noOfRandomFeatures <= 0){
+                                JOptionPane.showMessageDialog(new JFrame(), "No of random feature should be greater than zero!!!!", "Dialog",
+                                        JOptionPane.ERROR_MESSAGE);
+                                shouldClassify = false;
+                            }
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(new JFrame(), "No of random features should be integer!!!!", "Dialog",
                                     JOptionPane.ERROR_MESSAGE);
@@ -305,7 +323,7 @@ public class MainFrame {
 
                     if (!maxDepthTextField.getText().trim().equals("")) {
                         try {
-                            noOfRandomFeatures = Integer.parseInt(maxDepthTextField.getText());
+                            maxDepth = Integer.parseInt(maxDepthTextField.getText());
                         } catch (Exception ex) {
                             JOptionPane.showMessageDialog(new JFrame(), "Max depth should be integer!!!!", "Dialog",
                                     JOptionPane.ERROR_MESSAGE);
@@ -320,7 +338,7 @@ public class MainFrame {
                     forestSettings.setMinInfoGain(minInfoGain);
                     if (maxDepth > 0) {
                         forestSettings.setMaxTreeDepth(maxDepth);
-                    } else if (maxDepth == 0) {
+                    } else if (maxDepth <= 0) {
                         JOptionPane.showMessageDialog(new JFrame(), "Tree depth must be greater than zero!!!!", "Dialog",
                                 JOptionPane.ERROR_MESSAGE);
                         shouldClassify = false;
