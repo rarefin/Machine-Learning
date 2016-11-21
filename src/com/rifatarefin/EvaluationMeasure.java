@@ -23,15 +23,15 @@ public class EvaluationMeasure {
         return (1.0*count)/actualLabel.size();
     }
 
-    public static int[][] getConfusionMatrix(ArrayList<Double> actualLabel, ArrayList<Double> predictedLabel){
+    public static int[][] getConfusionMatrix(ArrayList<Double> actualLabel, ArrayList<Double> predictedLabel, HashSet<Double> classes ){
         if(actualLabel.size() != predictedLabel.size()){
             throw new IllegalArgumentException("No of predicted instances is not equal to no of actual instances!!!!");
         }
 
-        HashSet<Double> classes = new HashSet<Double>();
-        for (int i = 0; i < actualLabel.size(); i++) {
-            classes.add(actualLabel.get(i));
-        }
+        //HashSet<Double> classes = new HashSet<Double>();
+        //for (int i = 0; i < actualLabel.size(); i++) {
+          //  classes.add(actualLabel.get(i));
+        //}
         int[][] confusionMatrix = new int[classes.size()][classes.size()];
         for (int i = 0; i < actualLabel.size(); i++) {
             double actual = actualLabel.get(i);
@@ -40,11 +40,11 @@ public class EvaluationMeasure {
         }
         return confusionMatrix;
     }
-    public static double getPrecision(ArrayList<Double> actualLabel, ArrayList<Double> predictedLabel, double label){
+    public static double getPrecision(ArrayList<Double> actualLabel, ArrayList<Double> predictedLabel, double label, HashSet<Double> classes ){
         if(actualLabel.size() != predictedLabel.size()){
             throw new IllegalArgumentException("No of predicted instances is not equal to no of actual instances!!!!");
         }
-        int[][] confusionMatrix = getConfusionMatrix(actualLabel, predictedLabel);
+        int[][] confusionMatrix = getConfusionMatrix(actualLabel, predictedLabel, classes);
         int noOfClassifiedTarget = 0;
         int labelIndex = (int)label;
         for (int i = 0; i <confusionMatrix.length; i++) {
@@ -84,11 +84,11 @@ public class EvaluationMeasure {
         }
         return recall;
     }
-    public static double getRecall(ArrayList<Double> actualLabel, ArrayList<Double> predictedLabel, double label){
+    public static double getRecall(ArrayList<Double> actualLabel, ArrayList<Double> predictedLabel, double label, HashSet<Double> classes ){
         if(actualLabel.size() != predictedLabel.size()){
             throw new IllegalArgumentException("No of predicted instances is not equal to no of actual instances!!!!");
         }
-        int[][] confusionMatrix = getConfusionMatrix(actualLabel, predictedLabel);
+        int[][] confusionMatrix = getConfusionMatrix(actualLabel, predictedLabel, classes );
         int noOfActualTarget = 0;
         int labelIndex = (int)label;
         for (int i = 0; i <confusionMatrix[labelIndex].length; i++) {
@@ -112,9 +112,9 @@ public class EvaluationMeasure {
         return fScore;
     }
 
-    public static double getFMeasure(ArrayList<Double> actualLabel, ArrayList<Double> predictedLabel, double label){
-        double precision = getPrecision(actualLabel, predictedLabel, label);
-        double recall = getRecall(actualLabel, predictedLabel, label);
+    public static double getFMeasure(ArrayList<Double> actualLabel, ArrayList<Double> predictedLabel, double label, HashSet<Double> classes ){
+        double precision = getPrecision(actualLabel, predictedLabel, label, classes);
+        double recall = getRecall(actualLabel, predictedLabel, label, classes);
 
         return getFMeasure(precision, recall);
     }
